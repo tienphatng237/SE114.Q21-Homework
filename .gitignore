@@ -1,0 +1,40 @@
+# Android Studio / IntelliJ
+*.iml
+.idea/
+
+# Gradle
+.gradle/
+.kotlin/
+build/
+**/build/
+
+# Local machine config
+local.properties
+
+# Native build folders
+.cxx/
+.externalNativeBuild/
+
+# Generated captures and logs
+captures/
+*.log
+*.hprof
+
+# Build artifacts
+*.apk
+*.ap_
+*.aab
+*.aar
+*.dex
+*.class
+
+# Signing files
+*.jks
+*.keystore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local reference images
+images/

@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="auth_panel_width">364dp</dimen>
+    <dimen name="auth_panel_height">820dp</dimen>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screen_background">#F7F4EB</color>
+    <color name="panel_background">#FFFDFC</color>
+    <color name="outline">#2D2A26</color>
+    <color name="outline_soft">#6C665E</color>
+    <color name="text_primary">#2D2A26</color>
+    <color name="hint_text">#8B847B</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
