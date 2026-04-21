@@ -28,6 +28,8 @@ public class RegisterActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.edit_email);
         passwordEditText = findViewById(R.id.edit_password);
         confirmPasswordEditText = findViewById(R.id.edit_confirm_password);
+        PasswordVisibilityHelper.attach(passwordEditText);
+        PasswordVisibilityHelper.attach(confirmPasswordEditText);
         Button createButton = findViewById(R.id.button_create);
         TextView backTextView = findViewById(R.id.text_back);
         TextView loginTextView = findViewById(R.id.text_login);
@@ -54,6 +56,12 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (userPreferences.isEmailRegistered(email)) {
+            emailEditText.setError(getString(R.string.message_email_already_registered));
+            emailEditText.requestFocus();
+            return;
+        }
+
         int passwordError = validatePassword(password);
         if (passwordError != -1) {
             passwordEditText.setError(getString(passwordError));
@@ -68,7 +76,11 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         UserProfile newProfile = new UserProfile(name, email, password, "", "", "");
-        userPreferences.register(newProfile);
+        if (!userPreferences.register(newProfile)) {
+            emailEditText.setError(getString(R.string.message_email_already_registered));
+            emailEditText.requestFocus();
+            return;
+        }
 
         toast(R.string.message_register_success);
         openLogin(email);

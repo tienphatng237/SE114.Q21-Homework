@@ -4,38 +4,56 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Patterns;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileFragment extends Fragment {
 
     private UserPreferences userPreferences;
     private AvatarStorage avatarStorage;
     private ProfileFormView formView;
-    private MainBottomNavView bottomNavView;
     private String selectedAvatarPath = "";
-
-    private final ActivityResultLauncher<String> pickImageLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), this::handleImagePicked);
+    private ActivityResultLauncher<String> pickImageLauncher;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                this::handleImagePicked
+        );
+    }
 
-        userPreferences = new UserPreferences(this);
-        avatarStorage = new AvatarStorage(this);
+    @Nullable
+    @Override
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState
+    ) {
+        return inflater.inflate(R.layout.fragment_profile, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        userPreferences = new UserPreferences(requireContext());
+        avatarStorage = new AvatarStorage(requireContext());
 
         if (!hasProfileAccess()) {
             toast(R.string.message_profile_required);
@@ -43,23 +61,19 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        MaterialToolbar topAppBar = findViewById(R.id.top_app_bar);
-        setSupportActionBar(topAppBar);
-        setTitle(R.string.profile);
+        MaterialToolbar topAppBar = view.findViewById(R.id.top_app_bar);
+        ((AppCompatActivity) requireActivity()).setSupportActionBar(topAppBar);
+        requireActivity().setTitle(R.string.profile);
 
-        Animation toolbarEnter = AnimationUtils.loadAnimation(this, R.anim.toolbar_enter);
-        Animation panelEnter = AnimationUtils.loadAnimation(this, R.anim.panel_enter);
+        Animation toolbarEnter = AnimationUtils.loadAnimation(requireContext(), R.anim.toolbar_enter);
+        Animation panelEnter = AnimationUtils.loadAnimation(requireContext(), R.anim.panel_enter);
         topAppBar.startAnimation(toolbarEnter);
-        findViewById(R.id.panel_main).startAnimation(panelEnter);
+        view.findViewById(R.id.panel_main).startAnimation(panelEnter);
 
-        formView = new ProfileFormView(this);
-        bottomNavView = new MainBottomNavView(this);
-        formView.bindPickAvatar(view -> openImagePicker());
-        formView.bindSave(view -> saveProfile());
-        formView.bindLogout(view -> logout());
-        bottomNavView.bindHome(view -> openHome());
-        bottomNavView.bindProfile(view -> { });
-        bottomNavView.showProfileSelected();
+        formView = new ProfileFormView(view);
+        formView.bindPickAvatar(v -> openImagePicker());
+        formView.bindSave(v -> saveProfile());
+        formView.bindLogout(v -> logout());
         showProfile();
     }
 
@@ -92,7 +106,7 @@ public class ProfileActivity extends AppCompatActivity {
         selectedAvatarPath = importedAvatarPath;
         userPreferences.saveAvatarUrl(selectedAvatarPath);
         renderAvatar();
-        pulseView(findViewById(R.id.frame_avatar_picker));
+        pulseView(requireView().findViewById(R.id.frame_avatar_picker));
     }
 
     private void renderAvatar() {
@@ -130,7 +144,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         formView.updateTitle(name);
         renderAvatar();
-        pulseView(findViewById(R.id.button_save));
+        pulseView(requireView().findViewById(R.id.button_save));
         toast(R.string.message_profile_saved);
     }
 
@@ -140,33 +154,8 @@ public class ProfileActivity extends AppCompatActivity {
         openLogin();
     }
 
-    private void openHome() {
-        startActivity(MainShellActivity.createIntent(this, MainShellActivity.TAB_HOME));
-        finish();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main_options, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.action_about) {
-            showAboutDialog();
-            return true;
-        }
-        if (itemId == R.id.action_logout) {
-            logout();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     private void showAboutDialog() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.about_dialog_title)
                 .setMessage(R.string.about_dialog_message)
                 .setPositiveButton(android.R.string.ok, null)
@@ -174,14 +163,12 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void openLogin() {
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
+        startActivity(new Intent(requireContext(), LoginActivity.class));
+        requireActivity().finish();
     }
 
     private void toast(int messageId) {
-        Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), messageId, Toast.LENGTH_SHORT).show();
     }
 
     private void pulseView(View view) {

@@ -1,140 +1,184 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/screen_background"
-    android:clipToPadding="false"
-    android:fillViewport="true">
+    android:background="@drawable/bg_app_background"
+    android:fillViewport="true"
+    android:clipToPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="18dp"
-        android:paddingBottom="18dp">
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="20dp">
 
-        <LinearLayout
-            android:layout_width="@dimen/auth_panel_width"
-            android:layout_height="@dimen/auth_panel_height"
+        <TextView
+            style="@style/SketchLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/bg_panel"
-            android:orientation="vertical"
-            android:paddingHorizontal="22dp"
-            android:paddingTop="28dp"
-            android:paddingBottom="24dp">
+            android:background="@drawable/bg_button_black_border"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:text="@string/app_name"
+            android:textColor="@color/primary_blue_dark" />
 
-            <TextView
-                android:id="@+id/text_back"
-                style="@style/SketchLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/back" />
-
-            <TextView
-                style="@style/SketchTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/register_title" />
-
-            <TextView
-                style="@style/SketchLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
-                android:text="@string/name_label" />
-
-            <EditText
-                android:id="@+id/edit_name"
-                style="@style/SketchInput"
-                android:hint="@string/hint_name"
-                android:imeOptions="actionNext"
-                android:inputType="textPersonName"
-                android:maxLines="1" />
-
-            <TextView
-                style="@style/SketchLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/email_label" />
-
-            <EditText
-                android:id="@+id/edit_email"
-                style="@style/SketchInput"
-                android:hint="@string/hint_email"
-                android:imeOptions="actionNext"
-                android:inputType="textEmailAddress"
-                android:maxLines="1" />
-
-            <TextView
-                style="@style/SketchLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/password_label" />
-
-            <EditText
-                android:id="@+id/edit_password"
-                style="@style/SketchInput"
-                android:hint="@string/hint_password"
-                android:imeOptions="actionNext"
-                android:inputType="textPassword"
-                android:maxLines="1" />
-
-            <TextView
-                style="@style/SketchLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/confirm_password_label" />
-
-            <EditText
-                android:id="@+id/edit_confirm_password"
-                style="@style/SketchInput"
-                android:hint="@string/hint_password"
-                android:imeOptions="actionDone"
-                android:inputType="textPassword"
-                android:maxLines="1" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="@dimen/auth_panel_width"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            app:cardBackgroundColor="@color/panel_background"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="10dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center_horizontal"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <TextView
-                    style="@style/SketchLink"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/already_have_account" />
+                    android:background="@drawable/bg_hero_banner"
+                    android:orientation="vertical"
+                    android:padding="22dp">
 
-                <TextView
-                    android:id="@+id/text_login"
-                    style="@style/SketchLink"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        style="@style/SketchHeroTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/register_title" />
+
+                    <TextView
+                        style="@style/SketchHeroSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/register_subtitle" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/login_link_text"
-                    android:textStyle="bold" />
+                    android:orientation="vertical"
+                    android:paddingHorizontal="22dp"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="22dp">
+
+                    <TextView
+                        style="@style/SketchLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/name_label" />
+
+                    <EditText
+                        android:id="@+id/edit_name"
+                        style="@style/SketchInput"
+                        android:hint="@string/hint_name"
+                        android:imeOptions="actionNext"
+                        android:inputType="textPersonName"
+                        android:maxLines="1" />
+
+                    <TextView
+                        style="@style/SketchLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/email_label" />
+
+                    <EditText
+                        android:id="@+id/edit_email"
+                        style="@style/SketchInput"
+                        android:hint="@string/hint_email"
+                        android:imeOptions="actionNext"
+                        android:inputType="textEmailAddress"
+                        android:maxLines="1" />
+
+                    <TextView
+                        style="@style/SketchLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/password_label" />
+
+                    <EditText
+                        android:id="@+id/edit_password"
+                        style="@style/SketchInput"
+                        android:hint="@string/hint_password"
+                        android:imeOptions="actionNext"
+                        android:inputType="textPassword"
+                        android:maxLines="1"
+                        android:paddingEnd="48dp" />
+
+                    <TextView
+                        style="@style/SketchLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/confirm_password_label" />
+
+                    <EditText
+                        android:id="@+id/edit_confirm_password"
+                        style="@style/SketchInput"
+                        android:hint="@string/hint_password"
+                        android:imeOptions="actionDone"
+                        android:inputType="textPassword"
+                        android:maxLines="1"
+                        android:paddingEnd="48dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="18dp">
+
+                        <TextView
+                            style="@style/SketchLink"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/already_have_account" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:id="@+id/text_login"
+                            style="@style/SketchLink"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/login_link_text"
+                            android:textColor="@color/primary_blue_dark"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_create"
+                        style="@style/SketchPrimaryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/create" />
+                </LinearLayout>
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_create"
-                style="@style/SketchPrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="36dp"
-                android:text="@string/create" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/text_back"
+            style="@style/SketchLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/back"
+            android:textColor="@color/primary_blue_dark"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

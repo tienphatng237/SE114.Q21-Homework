@@ -30,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
 
         emailEditText = findViewById(R.id.edit_email);
         passwordEditText = findViewById(R.id.edit_password);
+        PasswordVisibilityHelper.attach(passwordEditText);
         Button signInButton = findViewById(R.id.button_sign_in);
         TextView registerTextView = findViewById(R.id.text_register);
         TextView forgotPasswordTextView = findViewById(R.id.text_forgot_password);
@@ -71,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        userPreferences.setLoggedIn(true);
+        userPreferences.setLoggedInUser(email);
         toast(R.string.message_login_success);
         openHome();
     }
@@ -97,9 +98,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void openHome() {
-        Intent intent = new Intent(this, PostActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        startActivity(MainShellActivity.createIntent(this, MainShellActivity.TAB_HOME));
         finish();
     }
 

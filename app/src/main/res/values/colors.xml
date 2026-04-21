@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="screen_background">#F7F4EB</color>
-    <color name="panel_background">#FFFDFC</color>
-    <color name="outline">#2D2A26</color>
-    <color name="outline_soft">#6C665E</color>
-    <color name="text_primary">#2D2A26</color>
-    <color name="hint_text">#8B847B</color>
+    <color name="app_bg_start">#F6FAFF</color>
+    <color name="app_bg_end">#E7F1FF</color>
+    <color name="surface">#CFFFFFFF</color>
+    <color name="surface_soft">#BFF4FAFF</color>
+    <color name="surface_strong">#D8EEF7FF</color>
+    <color name="primary_blue">#2458D8</color>
+    <color name="primary_blue_dark">#163A91</color>
+    <color name="primary_blue_light">#76A9FF</color>
+    <color name="accent_cyan">#7FD7FF</color>
+    <color name="outline">#87A8D8</color>
+    <color name="outline_soft">#B2CBE8</color>
+    <color name="text_primary">#10233F</color>
+    <color name="text_secondary">#4F6484</color>
+    <color name="hint_text">#7A8DAA</color>
+    <color name="screen_background">#F6FAFF</color>
+    <color name="panel_background">#D8FFFFFF</color>
+    <color name="glass_button_fill">#CC2458D8</color>
+    <color name="glass_button_fill_pressed">#E0163A91</color>
+    <color name="glass_button_stroke">#66FFFFFF</color>
+    <color name="glass_chip_fill">#C6FFFFFF</color>
+    <color name="glass_chip_fill_pressed">#E4FFFFFF</color>
+    <color name="glass_chip_stroke">#7C9BC6E8</color>
+    <color name="nav_indicator_start">#DCE7FF</color>
+    <color name="nav_indicator_end">#BFD3FF</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

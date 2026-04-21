@@ -13,11 +13,11 @@
         android:id="@+id/top_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
         android:layout_marginTop="4dp"
-        app:title="@string/profile"
+        android:background="@android:color/transparent"
         app:subtitle="@string/profile_subtitle"
         app:subtitleTextColor="@color/text_secondary"
+        app:title="@string/profile"
         app:titleTextColor="@color/text_primary" />
 
     <ScrollView
@@ -35,13 +35,15 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/panel_main"
-                android:layout_width="@dimen/auth_panel_width"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipToOutline="true"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
+                android:elevation="0dp"
                 app:cardBackgroundColor="@color/panel_background"
-                app:cardCornerRadius="28dp"
-                app:cardElevation="10dp"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/outline_soft"
                 app:strokeWidth="1dp">
 
@@ -53,30 +55,9 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_hero_banner"
-                        android:orientation="vertical"
-                        android:padding="22dp">
-
-                        <TextView
-                            style="@style/SketchHeroTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/profile" />
-
-                        <TextView
-                            style="@style/SketchHeroSubtitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/profile_subtitle" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:paddingHorizontal="22dp"
-                        android:paddingTop="20dp"
+                        android:paddingTop="22dp"
                         android:paddingBottom="22dp">
 
                         <LinearLayout
@@ -240,6 +221,4 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
-
-    <include layout="@layout/view_bottom_nav" />
 </LinearLayout>

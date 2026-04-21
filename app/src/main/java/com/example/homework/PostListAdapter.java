@@ -63,6 +63,9 @@ public class PostListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        convertView.setLongClickable(true);
+        convertView.setHapticFeedbackEnabled(true);
+
         PostItem post = getItem(position);
         avatarStorage.loadInto(
                 holder.avatarImageView,

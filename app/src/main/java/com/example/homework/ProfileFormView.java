@@ -1,5 +1,6 @@
 package com.example.homework;
 
+import android.content.Context;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -10,9 +11,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 
+import java.util.Locale;
+
 public class ProfileFormView {
 
-    private final AppCompatActivity activity;
+    private final Context context;
     private final TextView titleTextView;
     private final TextView avatarStatusTextView;
     private final EditText nameEditText;
@@ -26,18 +29,22 @@ public class ProfileFormView {
     private final MaterialButton logoutButton;
 
     public ProfileFormView(AppCompatActivity activity) {
-        this.activity = activity;
-        titleTextView = activity.findViewById(R.id.text_profile_title);
-        avatarStatusTextView = activity.findViewById(R.id.text_avatar_status);
-        nameEditText = activity.findViewById(R.id.edit_name);
-        emailEditText = activity.findViewById(R.id.edit_email);
-        addressEditText = activity.findViewById(R.id.edit_address);
-        descriptionEditText = activity.findViewById(R.id.edit_description);
-        avatarImageView = activity.findViewById(R.id.image_avatar);
-        avatarPickerFrame = activity.findViewById(R.id.frame_avatar_picker);
-        chooseImageButton = activity.findViewById(R.id.button_choose_image);
-        saveButton = activity.findViewById(R.id.button_save);
-        logoutButton = activity.findViewById(R.id.button_logout);
+        this(activity.findViewById(android.R.id.content));
+    }
+
+    public ProfileFormView(View rootView) {
+        this.context = rootView.getContext();
+        titleTextView = rootView.findViewById(R.id.text_profile_title);
+        avatarStatusTextView = rootView.findViewById(R.id.text_avatar_status);
+        nameEditText = rootView.findViewById(R.id.edit_name);
+        emailEditText = rootView.findViewById(R.id.edit_email);
+        addressEditText = rootView.findViewById(R.id.edit_address);
+        descriptionEditText = rootView.findViewById(R.id.edit_description);
+        avatarImageView = rootView.findViewById(R.id.image_avatar);
+        avatarPickerFrame = rootView.findViewById(R.id.frame_avatar_picker);
+        chooseImageButton = rootView.findViewById(R.id.button_choose_image);
+        saveButton = rootView.findViewById(R.id.button_save);
+        logoutButton = rootView.findViewById(R.id.button_logout);
     }
 
     public void bindPickAvatar(View.OnClickListener listener) {
@@ -94,8 +101,26 @@ public class ProfileFormView {
 
     public void updateTitle(String name) {
         String safeName = name == null || name.isEmpty()
-                ? activity.getString(R.string.default_profile_name)
-                : name;
-        titleTextView.setText(activity.getString(R.string.profile_title_format, safeName));
+                ? context.getString(R.string.default_profile_name)
+                : toDisplayName(name);
+        titleTextView.setText(context.getString(R.string.profile_title_format, safeName));
+    }
+
+    private String toDisplayName(String name) {
+        if (name == null) {
+            return "";
+        }
+
+        String trimmedName = name.trim();
+        if (trimmedName.isEmpty()) {
+            return "";
+        }
+
+        String firstCharacter = trimmedName.substring(0, 1).toUpperCase(Locale.getDefault());
+        if (trimmedName.length() == 1) {
+            return firstCharacter;
+        }
+
+        return firstCharacter + trimmedName.substring(1);
     }
 }

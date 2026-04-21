@@ -1,12 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/screen_background"
+    android:background="@drawable/bg_app_background"
     android:orientation="vertical"
     android:paddingHorizontal="12dp"
     android:paddingTop="18dp"
     android:paddingBottom="18dp">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:layout_marginTop="6dp"
+        app:title="@string/home"
+        app:subtitle="@string/home_subtitle"
+        app:subtitleTextColor="@color/text_secondary"
+        app:titleTextColor="@color/text_primary" />
+
+    <LinearLayout
+        android:id="@+id/home_options_bar"
+        android:layout_width="@dimen/auth_panel_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_bottom_nav"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_option_profile"
+            style="@style/SketchMenuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="@string/menu_profile" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_option_sort_oldest"
+            style="@style/SketchMenuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="@string/menu_sort_oldest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_option_sort_newest"
+            style="@style/SketchMenuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="@string/menu_sort_newest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_option_sort_author"
+            style="@style/SketchMenuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:text="@string/menu_sort_author" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,55 +77,68 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/panel_main"
             android:layout_width="@dimen/auth_panel_width"
-            android:layout_height="@dimen/auth_panel_height"
-            android:background="@drawable/bg_panel"
-            android:orientation="vertical"
-            android:paddingHorizontal="18dp"
-            android:paddingTop="18dp"
-            android:paddingBottom="20dp">
+            android:layout_height="@dimen/post_panel_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginVertical="8dp"
+            app:cardBackgroundColor="@color/panel_background"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="10dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="18dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="20dp">
 
-                <EditText
-                    android:id="@+id/edit_post_input"
-                    style="@style/SketchInput"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:hint="@string/hint_post_input"
-                    android:inputType="textCapSentences|textMultiLine"
-                    android:maxLines="2" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_post"
-                    style="@style/SketchPrimaryButton"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/post" />
-            </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-            <ListView
-                android:id="@+id/list_posts"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="18dp"
-                android:layout_weight="1"
-                android:clipToPadding="false"
-                android:divider="@android:color/transparent"
-                android:dividerHeight="14dp"
-                android:listSelector="@android:color/transparent"
-                android:overScrollMode="never"
-                android:paddingBottom="8dp" />
-        </LinearLayout>
+                    <EditText
+                        android:id="@+id/edit_post_input"
+                        style="@style/SketchInput"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:hint="@string/hint_post_input"
+                        android:inputType="textCapSentences|textMultiLine"
+                        android:maxLines="2" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_post"
+                        style="@style/SketchPrimaryButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="@string/post" />
+                </LinearLayout>
+
+                <ListView
+                    android:id="@+id/list_posts"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="14dp"
+                    android:listSelector="@android:color/transparent"
+                    android:layoutAnimation="@anim/layout_posts"
+                    android:overScrollMode="never"
+                    android:paddingBottom="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
     <include layout="@layout/view_bottom_nav" />

@@ -1,0 +1,28 @@
+<resources>
+    <color name="app_bg_start">#071224</color>
+    <color name="app_bg_end">#0C1D36</color>
+    <color name="surface">#26192E4E</color>
+    <color name="surface_soft">#33213F69</color>
+    <color name="surface_strong">#40325C91</color>
+    <color name="primary_blue">#7CB0FF</color>
+    <color name="primary_blue_dark">#4A7CDE</color>
+    <color name="primary_blue_light">#A9CBFF</color>
+    <color name="accent_cyan">#96E2FF</color>
+    <color name="outline">#5478A8</color>
+    <color name="outline_soft">#6E8EB7</color>
+    <color name="text_primary">#EAF2FF</color>
+    <color name="text_secondary">#B3C6E2</color>
+    <color name="hint_text">#8197B5</color>
+    <color name="screen_background">#071224</color>
+    <color name="panel_background">#27203354</color>
+    <color name="glass_button_fill">#664A7CDE</color>
+    <color name="glass_button_fill_pressed">#804A7CDE</color>
+    <color name="glass_button_stroke">#66EAF2FF</color>
+    <color name="glass_chip_fill">#22334872</color>
+    <color name="glass_chip_fill_pressed">#2F3B5380</color>
+    <color name="glass_chip_stroke">#5C8AAECF</color>
+    <color name="nav_indicator_start">#334E87</color>
+    <color name="nav_indicator_end">#2C63C8</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
