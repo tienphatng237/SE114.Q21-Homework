@@ -37,6 +37,10 @@ public class UserPreferences {
         return !getUsers().isEmpty();
     }
 
+    public List<UserProfile> getRegisteredUsers() {
+        return new ArrayList<>(getUsers());
+    }
+
     public boolean isEmailRegistered(String email) {
         return findUserByEmail(email) != null;
     }

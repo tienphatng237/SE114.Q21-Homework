@@ -37,6 +37,16 @@
     <string name="menu_sort_author">Author</string>
     <string name="menu_hidden">Hidden</string>
     <string name="menu_feed">Feed</string>
+    <string name="friend_suggestions_title">Friend Suggestions</string>
+    <string name="friend_suggestions_subtitle">Match your phone contacts with registered users.</string>
+    <string name="friend_suggestions_sync">Sync contacts</string>
+    <string name="friend_suggestions_allow">Allow contacts</string>
+    <string name="friend_suggestions_add">Add</string>
+    <string name="friend_suggestions_permission_required">Allow Contacts permission to suggest friends from your address book.</string>
+    <string name="friend_suggestions_empty">No registered friends found in your contacts yet.</string>
+    <string name="friend_suggestions_load_failed">Không thể đọc danh bạ trên thiết bị này.</string>
+    <string name="friend_suggestions_permission_denied">Bạn chưa cấp quyền danh bạ.</string>
+    <string name="friend_suggestions_request_sent">Đã gửi lời mời kết bạn tới %1$s.</string>
     <string name="about_dialog_title">About this app</string>
     <string name="about_dialog_message">Sketch Auth is a demo app with login, register, post, and profile screens.</string>
     <string name="already_have_account">Already have an account?</string>
