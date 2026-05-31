@@ -11,11 +11,16 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText;
     private EditText passwordEditText;
     private UserPreferences userPreferences;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +28,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         userPreferences = new UserPreferences(this);
+        apiService = ApiClient.getService();
         if (userPreferences.isLoggedIn() && userPreferences.hasRegisteredUser()) {
             openHome();
             return;
@@ -73,8 +79,34 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         userPreferences.setLoggedInUser(email);
+        syncApiSession(email, password);
         toast(R.string.message_login_success);
         openHome();
+    }
+
+    private void syncApiSession(String email, String password) {
+        apiService.login(new ApiLoginRequest(email, password)).enqueue(new Callback<ApiLoginResponse>() {
+            @Override
+            public void onResponse(Call<ApiLoginResponse> call, Response<ApiLoginResponse> response) {
+                ApiLoginResponse body = response.body();
+                if (!response.isSuccessful() || body == null || body.getUser() == null) {
+                    return;
+                }
+
+                ApiUser apiUser = body.getUser();
+                if (apiUser.getId() > 0) {
+                    userPreferences.saveApiUserId(email, apiUser.getId());
+                }
+                if (!apiUser.getPhone().isEmpty()) {
+                    userPreferences.saveApiPhone(email, apiUser.getPhone());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiLoginResponse> call, Throwable throwable) {
+                // Đăng nhập local vẫn hoạt động ngay cả khi API tạm lỗi mạng.
+            }
+        });
     }
 
     private void showPasswordHint() {

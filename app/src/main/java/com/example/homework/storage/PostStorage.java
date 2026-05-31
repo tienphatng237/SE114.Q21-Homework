@@ -73,7 +73,7 @@ public class PostStorage {
     public List<PostItem> getVisiblePosts(String email) {
         List<PostItem> visiblePosts = new ArrayList<>();
         for (PostItem post : getPosts()) {
-            if (!isPostHiddenForUser(email, post.getId())) {
+            if (!isPostHiddenForUserInternal(email, post.getId())) {
                 visiblePosts.add(post);
             }
         }
@@ -83,11 +83,15 @@ public class PostStorage {
     public List<PostItem> getHiddenPosts(String email) {
         List<PostItem> hiddenPosts = new ArrayList<>();
         for (PostItem post : getPosts()) {
-            if (isPostHiddenForUser(email, post.getId())) {
+            if (isPostHiddenForUserInternal(email, post.getId())) {
                 hiddenPosts.add(post);
             }
         }
         return hiddenPosts;
+    }
+
+    public boolean isPostHiddenForUser(String email, String postId) {
+        return isPostHiddenForUserInternal(email, postId);
     }
 
     public boolean deletePostAt(int position) {
@@ -184,7 +188,7 @@ public class PostStorage {
         preferences.edit().putString(KEY_POSTS, postArray.toString()).apply();
     }
 
-    private boolean isPostHiddenForUser(String email, String postId) {
+    private boolean isPostHiddenForUserInternal(String email, String postId) {
         String hiddenPostsKey = createHiddenPostsKey(email);
         if (hiddenPostsKey.isEmpty()) {
             return false;

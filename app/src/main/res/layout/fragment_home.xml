@@ -20,54 +20,72 @@
         app:subtitleTextColor="@color/text_secondary"
         app:titleTextColor="@color/text_primary" />
 
-    <LinearLayout
+    <HorizontalScrollView
         android:id="@+id/home_options_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_bottom_nav"
-        android:orientation="horizontal"
+        android:fillViewport="true"
+        android:scrollbars="none"
         android:paddingHorizontal="8dp"
         android:paddingVertical="8dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_option_sort_oldest"
-            style="@style/SketchMenuButton"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:text="@string/menu_sort_oldest" />
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_option_sort_newest"
-            style="@style/SketchMenuButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:text="@string/menu_sort_newest" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_option_sort_oldest"
+                style="@style/SketchMenuButton"
+                android:layout_width="84dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/menu_sort_oldest" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_option_sort_author"
-            style="@style/SketchMenuButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:text="@string/menu_sort_author" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_option_sort_newest"
+                style="@style/SketchMenuButton"
+                android:layout_width="84dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/menu_sort_newest" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_option_hidden"
-            style="@style/SketchMenuButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="@string/menu_hidden" />
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_option_sort_author"
+                style="@style/SketchMenuButton"
+                android:layout_width="84dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/menu_sort_author" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_option_hidden"
+                style="@style/SketchMenuButton"
+                android:layout_width="84dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/menu_hidden" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_option_api_sync"
+                style="@style/SketchMenuButton"
+                android:layout_width="72dp"
+                android:layout_height="42dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/menu_api_sync" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/panel_main"

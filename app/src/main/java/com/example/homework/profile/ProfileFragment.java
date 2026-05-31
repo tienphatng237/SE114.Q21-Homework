@@ -21,10 +21,15 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ProfileFragment extends Fragment {
 
     private UserPreferences userPreferences;
     private AvatarStorage avatarStorage;
+    private ApiService apiService;
     private ProfileFormView formView;
     private String selectedAvatarPath = "";
     private ActivityResultLauncher<String> pickImageLauncher;
@@ -54,6 +59,7 @@ public class ProfileFragment extends Fragment {
 
         userPreferences = new UserPreferences(requireContext());
         avatarStorage = new AvatarStorage(requireContext());
+        apiService = ApiClient.getService();
 
         if (!hasProfileAccess()) {
             toast(R.string.message_profile_required);
@@ -75,6 +81,7 @@ public class ProfileFragment extends Fragment {
         formView.bindSave(v -> saveProfile());
         formView.bindLogout(v -> logout());
         showProfile();
+        syncProfileFromApiIfPossible();
     }
 
     private boolean hasProfileAccess() {
@@ -144,8 +151,97 @@ public class ProfileFragment extends Fragment {
 
         formView.updateTitle(name);
         renderAvatar();
+        syncProfileToApiIfPossible(updatedProfile);
         pulseView(requireView().findViewById(R.id.button_save));
         toast(R.string.message_profile_saved);
+    }
+
+    private void syncProfileFromApiIfPossible() {
+        String currentEmail = userPreferences.getCurrentEmail();
+        int apiUserId = userPreferences.getApiUserId(currentEmail);
+        if (apiUserId <= 0) {
+            return;
+        }
+
+        apiService.getUserProfile(apiUserId).enqueue(new Callback<ApiProfileResponse>() {
+            @Override
+            public void onResponse(Call<ApiProfileResponse> call, Response<ApiProfileResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiProfileResponse body = response.body();
+                if (!response.isSuccessful() || body == null || body.getUser() == null) {
+                    return;
+                }
+
+                ApiUser apiUser = body.getUser();
+                userPreferences.saveApiPhone(currentEmail, apiUser.getPhone());
+                UserProfile currentProfile = userPreferences.getProfile();
+                UserProfile mergedProfile = new UserProfile(
+                        fallbackText(apiUser.getName(), currentProfile.getName()),
+                        currentProfile.getEmail(),
+                        currentProfile.getPassword(),
+                        fallbackText(apiUser.getAddress(), currentProfile.getAddress()),
+                        fallbackText(apiUser.getAvatarUrl(), currentProfile.getAvatarUrl()),
+                        fallbackText(apiUser.getDescription(), currentProfile.getDescription())
+                );
+
+                userPreferences.saveProfile(mergedProfile);
+                selectedAvatarPath = avatarStorage.normalizeStoredPath(mergedProfile.getAvatarUrl());
+                formView.showProfile(mergedProfile);
+                renderAvatar();
+            }
+
+            @Override
+            public void onFailure(Call<ApiProfileResponse> call, Throwable throwable) {
+                // Không chặn thao tác profile local khi API tạm lỗi.
+            }
+        });
+    }
+
+    private void syncProfileToApiIfPossible(UserProfile updatedProfile) {
+        String currentEmail = userPreferences.getCurrentEmail();
+        int apiUserId = userPreferences.getApiUserId(currentEmail);
+        if (apiUserId <= 0) {
+            return;
+        }
+
+        String apiPhone = userPreferences.getApiPhone(currentEmail);
+        ApiUpdateProfileRequest payload = new ApiUpdateProfileRequest(
+                updatedProfile.getName(),
+                updatedProfile.getAddress(),
+                updatedProfile.getAvatarUrl(),
+                updatedProfile.getDescription(),
+                apiPhone
+        );
+        apiService.updateUserProfile(apiUserId, payload).enqueue(new Callback<ApiProfileResponse>() {
+            @Override
+            public void onResponse(Call<ApiProfileResponse> call, Response<ApiProfileResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (!response.isSuccessful()) {
+                    toast(R.string.message_api_profile_update_failed);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiProfileResponse> call, Throwable throwable) {
+                if (!isAdded()) {
+                    return;
+                }
+                toast(R.string.message_api_profile_update_failed);
+            }
+        });
+    }
+
+    private String fallbackText(String apiValue, String localValue) {
+        if (apiValue == null || apiValue.trim().isEmpty()) {
+            return localValue == null ? "" : localValue;
+        }
+        return apiValue.trim();
     }
 
     private void logout() {

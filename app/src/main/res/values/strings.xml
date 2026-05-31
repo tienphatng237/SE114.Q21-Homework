@@ -6,6 +6,7 @@
     <string name="register_subtitle">Create a new account and start sharing posts.</string>
     <string name="profile_subtitle">Manage your account, avatar, and bio.</string>
     <string name="home_subtitle">Write, sort, and manage your posts.</string>
+    <string name="home_subtitle_with_api">Write, sort, and manage your posts. API friends: %1$d • My API posts: %2$d</string>
     <string name="home_hidden_subtitle">Review and restore the posts you hid.</string>
     <string name="profile_suffix">!</string>
     <string name="profile_title_format">Hi, %1$s</string>
@@ -37,6 +38,7 @@
     <string name="menu_sort_author">Author</string>
     <string name="menu_hidden">Hidden</string>
     <string name="menu_feed">Feed</string>
+    <string name="menu_api_sync">API</string>
     <string name="friend_suggestions_title">Friend Suggestions</string>
     <string name="friend_suggestions_subtitle">Match your phone contacts with registered users.</string>
     <string name="friend_suggestions_sync">Sync contacts</string>
@@ -90,6 +92,12 @@
     <string name="message_sorted_by_date_oldest">Đã sắp xếp từ cũ đến mới.</string>
     <string name="message_sorted_by_date_newest">Đã sắp xếp từ mới đến cũ.</string>
     <string name="message_sorted_by_author">Đã sắp xếp theo tên.</string>
+    <string name="message_api_posts_synced">Đã đồng bộ bài viết từ API.</string>
+    <string name="message_api_posts_sync_failed">Không thể tải dữ liệu API.</string>
+    <string name="message_api_post_create_failed">Đăng local thành công, nhưng không đăng được lên API.</string>
+    <string name="message_api_post_delete_failed">Không thể xóa bài viết trên API.</string>
+    <string name="message_api_session_missing">Chưa có API user session cho tài khoản này.</string>
+    <string name="message_api_profile_update_failed">Không thể cập nhật profile lên API.</string>
     <string name="post_content_clip_label">Post content</string>
     <string name="context_copy_post">Copy content</string>
     <string name="context_hide_post">Hide post</string>

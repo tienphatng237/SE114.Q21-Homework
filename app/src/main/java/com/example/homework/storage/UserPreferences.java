@@ -18,6 +18,8 @@ public class UserPreferences {
     private static final String KEY_USERS = "users";
     private static final String KEY_CURRENT_EMAIL = "current_email";
     private static final String KEY_LOGGED_IN = "logged_in";
+    private static final String KEY_API_USER_IDS = "api_user_ids";
+    private static final String KEY_API_PHONES = "api_phones";
 
     private static final String KEY_NAME = "name";
     private static final String KEY_EMAIL = "email";
@@ -178,6 +180,53 @@ public class UserPreferences {
         return preferences.getString(KEY_CURRENT_EMAIL, "");
     }
 
+    public void saveApiUserId(String email, int apiUserId) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty() || apiUserId <= 0) {
+            return;
+        }
+
+        JSONObject mapping = getApiUserIdMapping();
+        try {
+            mapping.put(normalizedEmail, apiUserId);
+            preferences.edit().putString(KEY_API_USER_IDS, mapping.toString()).apply();
+        } catch (JSONException ignored) {
+            // Bỏ qua lỗi để không ảnh hưởng flow đăng nhập local.
+        }
+    }
+
+    public int getApiUserId(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return -1;
+        }
+        return getApiUserIdMapping().optInt(normalizedEmail, -1);
+    }
+
+    public void saveApiPhone(String email, String phone) {
+        String normalizedEmail = normalizeEmail(email);
+        String safePhone = safeTrim(phone);
+        if (normalizedEmail.isEmpty() || safePhone.isEmpty()) {
+            return;
+        }
+
+        JSONObject mapping = getApiPhoneMapping();
+        try {
+            mapping.put(normalizedEmail, safePhone);
+            preferences.edit().putString(KEY_API_PHONES, mapping.toString()).apply();
+        } catch (JSONException ignored) {
+            // Không chặn flow chính nếu lưu phone gặp lỗi.
+        }
+    }
+
+    public String getApiPhone(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return "";
+        }
+        return getApiPhoneMapping().optString(normalizedEmail, "");
+    }
+
     private List<UserProfile> getUsers() {
         List<UserProfile> users = new ArrayList<>();
         String rawUsers = preferences.getString(KEY_USERS, "[]");
@@ -313,5 +362,25 @@ public class UserPreferences {
 
     private void setCurrentEmail(String email) {
         preferences.edit().putString(KEY_CURRENT_EMAIL, normalizeEmail(email)).apply();
+    }
+
+    private JSONObject getApiUserIdMapping() {
+        String rawMapping = preferences.getString(KEY_API_USER_IDS, "{}");
+        try {
+            return new JSONObject(rawMapping);
+        } catch (JSONException ignored) {
+            preferences.edit().remove(KEY_API_USER_IDS).apply();
+            return new JSONObject();
+        }
+    }
+
+    private JSONObject getApiPhoneMapping() {
+        String rawMapping = preferences.getString(KEY_API_PHONES, "{}");
+        try {
+            return new JSONObject(rawMapping);
+        } catch (JSONException ignored) {
+            preferences.edit().remove(KEY_API_PHONES).apply();
+            return new JSONObject();
+        }
     }
 }

@@ -10,6 +10,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText nameEditText;
@@ -17,6 +23,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private EditText confirmPasswordEditText;
     private UserPreferences userPreferences;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         userPreferences = new UserPreferences(this);
+        apiService = ApiClient.getService();
         nameEditText = findViewById(R.id.edit_name);
         emailEditText = findViewById(R.id.edit_email);
         passwordEditText = findViewById(R.id.edit_password);
@@ -82,8 +90,47 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        syncRegisterToApi(name, email, password);
         toast(R.string.message_register_success);
         openLogin(email);
+    }
+
+    private void syncRegisterToApi(String name, String email, String password) {
+        String generatedPhone = buildGeneratedPhone(email);
+        apiService.register(new ApiRegisterRequest(name, email, generatedPhone, password))
+                .enqueue(new Callback<ApiRegisterResponse>() {
+                    @Override
+                    public void onResponse(Call<ApiRegisterResponse> call, Response<ApiRegisterResponse> response) {
+                        ApiRegisterResponse body = response.body();
+                        if (!response.isSuccessful() || body == null || body.getUser() == null) {
+                            return;
+                        }
+
+                        ApiUser apiUser = body.getUser();
+                        if (apiUser.getId() > 0) {
+                            userPreferences.saveApiUserId(email, apiUser.getId());
+                        }
+                        if (!apiUser.getPhone().isEmpty()) {
+                            userPreferences.saveApiPhone(email, apiUser.getPhone());
+                        } else {
+                            userPreferences.saveApiPhone(email, generatedPhone);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiRegisterResponse> call, Throwable throwable) {
+                        // Tạo tài khoản local vẫn là luồng chính của app.
+                    }
+                });
+    }
+
+    private String buildGeneratedPhone(String email) {
+        String digits = String.format(
+                Locale.US,
+                "%010d",
+                Math.abs((email + System.currentTimeMillis()).hashCode())
+        );
+        return digits.substring(0, 10);
     }
 
     private void openLogin(String email) {

@@ -35,6 +35,10 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -42,9 +46,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class HomeFragment extends Fragment {
 
     private static final int MAX_FRIEND_SUGGESTIONS = 5;
+    private static final String API_POST_ID_PREFIX = "api-";
 
     private enum PostSortMode {
         DATE_ASC,
@@ -55,16 +64,24 @@ public class HomeFragment extends Fragment {
     private EditText postInputEditText;
     private ListView postsListView;
     private MaterialButton postButton;
+    private MaterialToolbar topAppBar;
     private UserPreferences userPreferences;
     private PostStorage postStorage;
     private PostListAdapter postListAdapter;
     private LinearLayout friendSuggestionsContainer;
     private TextView friendSuggestionsEmptyText;
     private MaterialButton syncContactsButton;
+    private MaterialButton syncApiButton;
     private ActivityResultLauncher<String> contactsPermissionLauncher;
+    private ApiService apiService;
+    private final List<PostItem> apiPosts = new ArrayList<>();
+    private final List<ApiPost> rawApiPosts = new ArrayList<>();
+    private final Set<String> apiRegisteredEmails = new HashSet<>();
     private final Set<String> dismissedSuggestionEmails = new HashSet<>();
     private PostSortMode sortMode = PostSortMode.DATE_DESC;
     private boolean showingHiddenPosts = false;
+    private int apiFriendCount = -1;
+    private int apiMyPostCount = -1;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,7 +113,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        MaterialToolbar topAppBar = view.findViewById(R.id.top_app_bar);
+        topAppBar = view.findViewById(R.id.top_app_bar);
         ((AppCompatActivity) requireActivity()).setSupportActionBar(topAppBar);
         requireActivity().setTitle(R.string.home);
 
@@ -107,6 +124,7 @@ public class HomeFragment extends Fragment {
         view.findViewById(R.id.home_options_bar).startAnimation(optionsBarEnter);
         view.findViewById(R.id.panel_main).startAnimation(panelEnter);
 
+        apiService = ApiClient.getService();
         postStorage = new PostStorage(requireContext());
         postStorage.removeLegacySamplePosts();
 
@@ -116,6 +134,7 @@ public class HomeFragment extends Fragment {
         MaterialButton sortNewestButton = view.findViewById(R.id.button_option_sort_newest);
         MaterialButton sortAuthorButton = view.findViewById(R.id.button_option_sort_author);
         MaterialButton hiddenPostsButton = view.findViewById(R.id.button_option_hidden);
+        syncApiButton = view.findViewById(R.id.button_option_api_sync);
         syncContactsButton = view.findViewById(R.id.button_sync_contacts);
         friendSuggestionsEmptyText = view.findViewById(R.id.text_friend_suggestions_empty);
         friendSuggestionsContainer = view.findViewById(R.id.list_friend_suggestions);
@@ -135,11 +154,14 @@ public class HomeFragment extends Fragment {
         sortNewestButton.setOnClickListener(view1 -> setSortMode(PostSortMode.DATE_DESC));
         sortAuthorButton.setOnClickListener(view1 -> setSortMode(PostSortMode.AUTHOR));
         hiddenPostsButton.setOnClickListener(view1 -> toggleHiddenPosts());
+        syncApiButton.setOnClickListener(view1 -> syncPostsFromApi(true));
         syncContactsButton.setOnClickListener(view1 -> onSyncContactsClicked());
 
         updateTopBarSubtitle(topAppBar);
         updateHiddenButtonLabel(hiddenPostsButton);
         loadPosts();
+        syncPostsFromApi(false);
+        syncApiSupplementalData(false);
         refreshFriendSuggestions();
     }
 
@@ -175,6 +197,290 @@ public class HomeFragment extends Fragment {
         loadPosts();
         pulseView(postButton);
         toast(R.string.message_post_created);
+
+        syncCreatedPostToApi(content);
+    }
+
+    private void syncPostsFromApi(boolean showToast) {
+        syncApiButton.setEnabled(false);
+        apiService.getAllPosts().enqueue(new Callback<ApiPostsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiPostsResponse> call, @NonNull Response<ApiPostsResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                syncApiButton.setEnabled(true);
+                ApiPostsResponse body = response.body();
+                if (!response.isSuccessful() || body == null) {
+                    if (showToast) {
+                        toast(R.string.message_api_posts_sync_failed);
+                    }
+                    return;
+                }
+
+                apiPosts.clear();
+                rawApiPosts.clear();
+                for (ApiPost apiPost : body.getData()) {
+                    rawApiPosts.add(apiPost);
+                    apiPosts.add(mapApiPostToPostItem(apiPost));
+                }
+
+                loadPosts();
+                cacheApiUserIdFromPosts();
+                syncApiSupplementalData(false);
+                if (showToast) {
+                    toast(R.string.message_api_posts_synced);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiPostsResponse> call, @NonNull Throwable throwable) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                syncApiButton.setEnabled(true);
+                if (showToast) {
+                    toast(R.string.message_api_posts_sync_failed);
+                }
+            }
+        });
+    }
+
+    private void syncCreatedPostToApi(String content) {
+        String currentEmail = userPreferences.getCurrentEmail();
+        int apiUserId = userPreferences.getApiUserId(currentEmail);
+        if (apiUserId > 0) {
+            createApiPost(apiUserId, content);
+            return;
+        }
+
+        int guessedApiUserId = resolveApiUserIdFromLoadedPosts(currentEmail);
+        if (guessedApiUserId > 0) {
+            userPreferences.saveApiUserId(currentEmail, guessedApiUserId);
+            createApiPost(guessedApiUserId, content);
+            return;
+        }
+
+        String password = userPreferences.findPasswordByEmail(currentEmail);
+        if (password == null || password.isEmpty()) {
+            toast(R.string.message_api_session_missing);
+            return;
+        }
+
+        apiService.login(new ApiLoginRequest(currentEmail, password)).enqueue(new Callback<ApiLoginResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiLoginResponse> call, @NonNull Response<ApiLoginResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiLoginResponse body = response.body();
+                if (!response.isSuccessful() || body == null || body.getUser() == null || body.getUser().getId() <= 0) {
+                    toast(R.string.message_api_post_create_failed);
+                    return;
+                }
+
+                int userId = body.getUser().getId();
+                userPreferences.saveApiUserId(currentEmail, userId);
+                createApiPost(userId, content);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiLoginResponse> call, @NonNull Throwable throwable) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                toast(R.string.message_api_post_create_failed);
+            }
+        });
+    }
+
+    private void createApiPost(int apiUserId, String content) {
+        apiService.createPost(new ApiCreatePostRequest(apiUserId, content)).enqueue(new Callback<ApiPostResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiPostResponse> call, @NonNull Response<ApiPostResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiPostResponse body = response.body();
+                if (!response.isSuccessful() || body == null || body.getData() == null) {
+                    toast(R.string.message_api_post_create_failed);
+                    return;
+                }
+
+                apiPosts.add(mapApiPostToPostItem(body.getData()));
+                loadPosts();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiPostResponse> call, @NonNull Throwable throwable) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                toast(R.string.message_api_post_create_failed);
+            }
+        });
+    }
+
+    private PostItem mapApiPostToPostItem(ApiPost apiPost) {
+        ApiUser author = apiPost.getAuthor();
+        String authorName = author == null || author.getName().isEmpty()
+                ? getString(R.string.default_post_author)
+                : author.getName();
+        String avatarUrl = author == null ? "" : author.getAvatarUrl();
+
+        long createdAtMillis = parseApiDateMillis(apiPost.getCreatedAt());
+        return new PostItem(
+                API_POST_ID_PREFIX + apiPost.getId(),
+                authorName,
+                avatarUrl,
+                formatDateLabel(createdAtMillis),
+                apiPost.getContent(),
+                createdAtMillis
+        );
+    }
+
+    private int resolveApiUserIdFromLoadedPosts(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return -1;
+        }
+
+        for (ApiPost apiPost : rawApiPosts) {
+            ApiUser author = apiPost.getAuthor();
+            if (author == null || normalizeEmail(author.getEmail()).isEmpty()) {
+                continue;
+            }
+            if (normalizeEmail(author.getEmail()).equals(normalizedEmail) && author.getId() > 0) {
+                return author.getId();
+            }
+        }
+
+        return -1;
+    }
+
+    private void cacheApiUserIdFromPosts() {
+        String currentEmail = userPreferences.getCurrentEmail();
+        int discoveredId = resolveApiUserIdFromLoadedPosts(currentEmail);
+        if (discoveredId > 0) {
+            userPreferences.saveApiUserId(currentEmail, discoveredId);
+        }
+    }
+
+    private void syncApiSupplementalData(boolean showToastOnFailure) {
+        String currentEmail = userPreferences.getCurrentEmail();
+        int apiUserId = userPreferences.getApiUserId(currentEmail);
+        if (apiUserId <= 0) {
+            apiUserId = resolveApiUserIdFromLoadedPosts(currentEmail);
+            if (apiUserId > 0) {
+                userPreferences.saveApiUserId(currentEmail, apiUserId);
+            }
+        }
+
+        apiService.getAllUserEmails().enqueue(new Callback<ApiEmailsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiEmailsResponse> call, @NonNull Response<ApiEmailsResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiEmailsResponse body = response.body();
+                if (!response.isSuccessful() || body == null) {
+                    if (showToastOnFailure) {
+                        toast(R.string.message_api_posts_sync_failed);
+                    }
+                    return;
+                }
+
+                apiRegisteredEmails.clear();
+                for (String email : body.getEmails()) {
+                    String normalized = normalizeEmail(email);
+                    if (!normalized.isEmpty()) {
+                        apiRegisteredEmails.add(normalized);
+                    }
+                }
+                refreshFriendSuggestions();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiEmailsResponse> call, @NonNull Throwable throwable) {
+                if (!isAdded() || !showToastOnFailure) {
+                    return;
+                }
+                toast(R.string.message_api_posts_sync_failed);
+            }
+        });
+
+        if (apiUserId <= 0) {
+            return;
+        }
+
+        apiService.getUserFriends(apiUserId).enqueue(new Callback<ApiFriendsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiFriendsResponse> call, @NonNull Response<ApiFriendsResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiFriendsResponse body = response.body();
+                if (!response.isSuccessful() || body == null) {
+                    return;
+                }
+
+                apiFriendCount = body.getFriends().size();
+                updateTopBarSubtitle(topAppBar);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiFriendsResponse> call, @NonNull Throwable throwable) {
+                // giữ subtitle cũ khi mạng lỗi.
+            }
+        });
+
+        apiService.getPostsByUser(apiUserId).enqueue(new Callback<ApiPostsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiPostsResponse> call, @NonNull Response<ApiPostsResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                ApiPostsResponse body = response.body();
+                if (!response.isSuccessful() || body == null) {
+                    return;
+                }
+
+                apiMyPostCount = body.getData().size();
+                updateTopBarSubtitle(topAppBar);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiPostsResponse> call, @NonNull Throwable throwable) {
+                // giữ subtitle cũ khi mạng lỗi.
+            }
+        });
+    }
+
+    private long parseApiDateMillis(String createdAt) {
+        if (createdAt == null || createdAt.isEmpty()) {
+            return System.currentTimeMillis();
+        }
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(createdAt);
+            return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (DateTimeParseException ignored) {
+            return System.currentTimeMillis();
+        }
+    }
+
+    private String formatDateLabel(long millis) {
+        return DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault())
+                .format(java.time.Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate());
     }
 
     private void onSyncContactsClicked() {
@@ -223,6 +529,7 @@ public class HomeFragment extends Fragment {
         }
 
         String currentEmail = normalizeEmail(userPreferences.getCurrentEmail());
+        Set<String> existingSuggestionEmails = new HashSet<>();
         for (UserProfile user : userPreferences.getRegisteredUsers()) {
             String candidateEmail = normalizeEmail(user.getEmail());
             if (candidateEmail.isEmpty() || candidateEmail.equals(currentEmail)) {
@@ -233,7 +540,22 @@ public class HomeFragment extends Fragment {
             }
             if (contactEmails.contains(candidateEmail)) {
                 suggestions.add(user);
+                existingSuggestionEmails.add(candidateEmail);
             }
+        }
+
+        for (String contactEmail : contactEmails) {
+            if (contactEmail.equals(currentEmail)) {
+                continue;
+            }
+            if (!apiRegisteredEmails.contains(contactEmail)) {
+                continue;
+            }
+            if (dismissedSuggestionEmails.contains(contactEmail) || existingSuggestionEmails.contains(contactEmail)) {
+                continue;
+            }
+            suggestions.add(buildApiEmailSuggestion(contactEmail));
+            existingSuggestionEmails.add(contactEmail);
         }
 
         suggestions.sort(
@@ -245,6 +567,15 @@ public class HomeFragment extends Fragment {
             return suggestions;
         }
         return new ArrayList<>(suggestions.subList(0, MAX_FRIEND_SUGGESTIONS));
+    }
+
+    private UserProfile buildApiEmailSuggestion(String email) {
+        String displayName = email;
+        int atIndex = email.indexOf('@');
+        if (atIndex > 0) {
+            displayName = email.substring(0, atIndex);
+        }
+        return new UserProfile(displayName, email, "", "", "", "");
     }
 
     private Set<String> loadContactEmails() {
@@ -399,12 +730,69 @@ public class HomeFragment extends Fragment {
 
     private void deletePost(int position) {
         PostItem post = postListAdapter.getItem(position);
+        if (isApiPost(post)) {
+            deleteApiPost(post);
+            return;
+        }
+
         if (!postStorage.deletePostById(post.getId())) {
             return;
         }
 
         loadPosts();
         toast(R.string.message_post_deleted);
+    }
+
+    private void deleteApiPost(PostItem post) {
+        int apiPostId = getApiPostId(post);
+        if (apiPostId <= 0) {
+            toast(R.string.message_api_post_delete_failed);
+            return;
+        }
+
+        apiService.deletePost(apiPostId).enqueue(new Callback<ApiDeleteResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiDeleteResponse> call, @NonNull Response<ApiDeleteResponse> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (!response.isSuccessful()) {
+                    toast(R.string.message_api_post_delete_failed);
+                    return;
+                }
+
+                apiPosts.removeIf(item -> item.getId().equals(post.getId()));
+                loadPosts();
+                toast(R.string.message_post_deleted);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiDeleteResponse> call, @NonNull Throwable throwable) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                toast(R.string.message_api_post_delete_failed);
+            }
+        });
+    }
+
+    private boolean isApiPost(PostItem post) {
+        return post.getId() != null && post.getId().startsWith(API_POST_ID_PREFIX);
+    }
+
+    private int getApiPostId(PostItem post) {
+        if (!isApiPost(post)) {
+            return -1;
+        }
+
+        String rawId = post.getId().substring(API_POST_ID_PREFIX.length());
+        try {
+            return Integer.parseInt(rawId);
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
     }
 
     private void hidePost(int position) {
@@ -449,11 +837,19 @@ public class HomeFragment extends Fragment {
 
     private void loadPosts() {
         String currentEmail = userPreferences.getCurrentEmail();
-        List<PostItem> posts = new ArrayList<>(showingHiddenPosts
+        List<PostItem> mergedPosts = new ArrayList<>(showingHiddenPosts
                 ? postStorage.getHiddenPosts(currentEmail)
                 : postStorage.getVisiblePosts(currentEmail));
-        sortPosts(posts);
-        postListAdapter.submitPosts(posts);
+
+        for (PostItem apiPost : apiPosts) {
+            boolean hidden = postStorage.isPostHiddenForUser(currentEmail, apiPost.getId());
+            if ((showingHiddenPosts && hidden) || (!showingHiddenPosts && !hidden)) {
+                mergedPosts.add(apiPost);
+            }
+        }
+
+        sortPosts(mergedPosts);
+        postListAdapter.submitPosts(mergedPosts);
         postsListView.scheduleLayoutAnimation();
     }
 
@@ -504,9 +900,21 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateTopBarSubtitle(MaterialToolbar topAppBar) {
-        topAppBar.setSubtitle(showingHiddenPosts
-                ? getString(R.string.home_hidden_subtitle)
-                : getString(R.string.home_subtitle));
+        if (showingHiddenPosts) {
+            topAppBar.setSubtitle(getString(R.string.home_hidden_subtitle));
+            return;
+        }
+
+        if (apiFriendCount >= 0 && apiMyPostCount >= 0) {
+            topAppBar.setSubtitle(getString(
+                    R.string.home_subtitle_with_api,
+                    apiFriendCount,
+                    apiMyPostCount
+            ));
+            return;
+        }
+
+        topAppBar.setSubtitle(getString(R.string.home_subtitle));
     }
 
     private void updateHiddenButtonLabel(MaterialButton hiddenPostsButton) {
